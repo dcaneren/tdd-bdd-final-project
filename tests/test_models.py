@@ -25,7 +25,7 @@ While debugging just these tests it's convenient to use this:
 """
 import os
 import logging
-import unittestte
+import unittest
 from decimal import Decimal
 from service.models import Product, Category, db
 from service import app
@@ -189,4 +189,23 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.category, category)
+    
+    def test_find_by_price(self):
+        """It should Find products by a specific price"""
+        price_to_test = 100.00
+        # Create products with different prices
+        products = ProductFactory.create_batch(3, price=price_to_test)
+        for product in products:
+            product.create()
+        products = ProductFactory.create_batch(2, price=200.00)
+        for product in products:
+            product.create()
 
+        # Check if products are added
+        self.assertEqual(len(Product.all()), 5)
+
+        # Find products by price and execute the query
+        found_products = Product.find_by_price(price_to_test).all()
+        self.assertEqual(len(found_products), 3, f"Found products: {found_products}")
+        for product in found_products:
+            self.assertEqual(Decimal(product.price), price_to_test)
